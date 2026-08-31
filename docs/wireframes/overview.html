@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>推しスケ 全体ワイヤーフレーム</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; color: #202020; background: #ecebe8; font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .review-shell { min-height: 100vh; display: grid; grid-template-columns: 245px 1fr; }
+    .review-nav { padding: 22px 14px; color: #f3f3f3; background: #242424; }
+    .review-title { margin: 0 8px 6px; font-size: 20px; }
+    .review-note { margin: 0 8px 18px; color: #bdbdbd; font-size: 12px; line-height: 1.6; }
+    .review-link { width: 100%; min-height: 42px; margin: 2px 0; padding: 9px 12px; border: 0; border-radius: 9px; color: #d8d8d8; background: transparent; text-align: left; }
+    .review-link[aria-selected="true"] { color: #161616; background: #f1f1f1; font-weight: 800; }
+    .review-main { display: grid; place-items: start center; padding: 28px 16px 60px; overflow: auto; }
+    .screen { display: none; width: min(390px, 100%); min-height: 760px; overflow: hidden; border: 1px solid #c7c7c7; border-radius: 28px; background: #f7f6f3; box-shadow: 0 15px 40px rgba(0,0,0,.15); }
+    .screen.active { display: block; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; min-height: 72px; padding: 15px 17px; background: #fff; border-bottom: 1px solid #ececec; }
+    .topbar h1 { margin: 0; font-size: 20px; }
+    .top-actions { display: flex; gap: 7px; }
+    .circle-action { width: 40px; height: 40px; display: grid; place-items: center; border: 1px solid #d5d5d5; border-radius: 50%; color: #222; background: #fff; }
+    svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+    .content { padding: 15px 14px 92px; }
+    .content h2 { margin: 18px 0 9px; font-size: 15px; }
+    .content h2:first-child { margin-top: 2px; }
+    .muted { color: #707070; font-size: 12px; line-height: 1.55; }
+    .field-label { display: block; margin: 13px 0 6px; font-size: 12px; font-weight: 800; }
+    .text-field, .select-field, .text-area { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #cfcfcf; border-radius: 11px; color: #202020; background: #fff; }
+    .text-area { min-height: 96px; resize: vertical; }
+    .primary-action { width: 100%; min-height: 46px; margin-top: 16px; border: 0; border-radius: 12px; color: #fff; background: #2e2e2e; font-weight: 800; }
+    .secondary-action { min-height: 40px; padding: 8px 12px; border: 1px solid #bdbdbd; border-radius: 10px; color: #222; background: #fff; font-weight: 700; }
+    .text-action { min-height: 38px; border: 0; color: #343434; background: transparent; text-decoration: underline; }
+    .chip-row { display: flex; gap: 7px; overflow-x: auto; padding: 2px 0 5px; }
+    .chip { flex: 0 0 auto; min-height: 36px; padding: 7px 11px; border: 1px solid #d1d1d1; border-radius: 18px; color: #222; background: #fff; }
+    .chip.selected { color: #fff; background: #2f2f2f; }
+    .tabs { display: flex; gap: 22px; padding: 0 14px; background: #fff; }
+    .tab { min-height: 44px; padding: 9px 2px 7px; border: 0; border-bottom: 3px solid transparent; color: #666; background: transparent; }
+    .tab.active { border-bottom-color: #222; color: #222; font-weight: 800; }
+    .event-card { margin: 11px 0; overflow: hidden; border: 1px solid #c74d67; border-left-width: 5px; border-radius: 15px; background: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.07); }
+    .event-card.blue { border-color: #477bc4; }
+    .event-card.checked { background: #fffdf7; }
+    .event-card.committed { background: #fbe8dc; }
+    .event-inner { padding: 13px 14px; }
+    .event-meta { display: flex; justify-content: space-between; gap: 8px; color: #666; font-size: 11px; }
+    .event-title { margin: 8px 0 6px; font-size: 16px; }
+    .event-date { margin: 0; font-size: 13px; font-weight: 800; }
+    .event-place { margin: 4px 0 0; color: #575757; font-size: 12px; }
+    .event-footer { width: 100%; min-height: 43px; border: 0; border-top: 1px solid #e8e8e8; background: rgba(255,255,255,.55); font-weight: 800; }
+    .profile-row { display: grid; grid-template-columns: 50px 1fr auto; gap: 10px; align-items: center; margin: 8px 0; padding: 10px; border: 1px solid #dedede; border-radius: 13px; background: #fff; }
+    .profile-icon { width: 50px; height: 50px; display: grid; place-items: center; border: 2px solid #b84366; border-radius: 50%; color: #b84366; }
+    .profile-icon.blue { border-color: #477bc4; color: #477bc4; }
+    .profile-name { margin: 0; font-size: 14px; font-weight: 800; }
+    .profile-meta { margin: 3px 0 0; color: #6c6c6c; font-size: 11px; }
+    .bottom-nav { position: sticky; bottom: 0; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid #d7d7d7; background: rgba(255,255,255,.97); }
+    .nav-item { min-height: 67px; display: grid; place-items: center; align-content: center; gap: 3px; border: 0; color: #707070; background: transparent; }
+    .nav-item.active { color: #202020; font-weight: 800; }
+    .nav-label { font-size: 10px; }
+    .osi-mark { width: 38px; height: 27px; display: grid; place-items: center; border: 2px solid currentColor; border-radius: 14px; font-size: 12px; font-weight: 900; letter-spacing: .06em; }
+    .profile-hero { display: grid; grid-template-columns: 76px 1fr; gap: 14px; align-items: center; }
+    .profile-hero .profile-icon { width: 76px; height: 76px; }
+    .link-list, .notice-list, .history-list { padding: 0; margin: 0; list-style: none; }
+    .link-list li, .notice-list li, .history-list li { padding: 12px 3px; border-bottom: 1px solid #dedede; font-size: 13px; line-height: 1.5; }
+    .type-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; }
+    .type-choice { min-height: 82px; display: grid; place-items: center; gap: 5px; padding: 10px; border: 1px solid #d2d2d2; border-radius: 13px; color: #222; background: #fff; }
+    .type-choice svg { width: 25px; height: 25px; }
+    .source-box, .info-box { margin: 10px 0; padding: 11px; border: 1px solid #d8d8d8; border-radius: 11px; background: #fff; font-size: 12px; line-height: 1.5; }
+    .detail-image { height: 175px; display: grid; place-items: center; border-radius: 14px; color: #777; background: #e9e9e7; }
+    .detail-image svg { width: 44px; height: 44px; }
+    .compare-label { margin: 13px 0 5px; font-size: 12px; font-weight: 800; }
+    .compare-box { padding: 13px; border: 1px solid #d4d4d4; border-radius: 12px; background: #fff; }
+    .compare-box.proposed { border-color: #7d9c86; background: #f4faf5; }
+    .choice-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+    .notice-unread { border-left: 4px solid #b84366; padding-left: 10px !important; background: #fff; }
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 2px; border-bottom: 1px solid #dedede; font-size: 13px; }
+    .toggle-box { width: 42px; height: 24px; border: 0; border-radius: 12px; background: #303030; }
+    .toggle-box::after { content: ""; display: block; width: 18px; height: 18px; margin: 3px 3px 3px auto; border-radius: 50%; background: #fff; }
+    .admin-screen { width: min(980px, 100%); border-radius: 16px; }
+    .admin-layout { display: grid; grid-template-columns: 180px 1fr; min-height: 650px; }
+    .admin-side { padding: 18px 12px; color: #eee; background: #2b2b2b; }
+    .admin-side button { width: 100%; min-height: 39px; border: 0; color: inherit; background: transparent; text-align: left; }
+    .admin-main { padding: 20px; background: #f8f8f8; }
+    .admin-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .admin-stat { padding: 15px; border: 1px solid #ddd; border-radius: 12px; background: #fff; }
+    .admin-number { display: block; margin-top: 6px; font-size: 24px; font-weight: 800; }
+    .admin-table { width: 100%; margin-top: 18px; border-collapse: collapse; background: #fff; }
+    .admin-table th, .admin-table td { padding: 11px; border: 1px solid #ddd; text-align: left; font-size: 12px; }
+    .login-logo { margin: 70px auto 35px; text-align: center; }
+    .login-logo strong { display: inline-grid; place-items: center; width: 72px; height: 52px; border: 3px solid #222; border-radius: 26px; font-size: 20px; letter-spacing: .08em; }
+    @media (max-width: 760px) {
+      .review-shell { display: block; }
+      .review-nav { position: sticky; top: 0; z-index: 20; padding: 10px; overflow-x: auto; white-space: nowrap; }
+      .review-title, .review-note { display: none; }
+      .review-link { width: auto; min-height: 36px; display: inline-block; padding: 7px 10px; }
+      .review-main { padding: 16px 7px 45px; }
+      .admin-layout { display: block; }
+      .admin-side { display: none; }
+      .admin-stats { grid-template-columns: 1fr; }
+      .admin-table { display: block; overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+  <svg aria-hidden="true" style="display:none">
+    <symbol id="icon-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></symbol>
+    <symbol id="icon-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="icon-list" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></symbol>
+    <symbol id="icon-music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+    <symbol id="icon-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></symbol>
+    <symbol id="icon-ticket" viewBox="0 0 24 24"><path d="M3 9a2 2 0 0 0 0 4v5h18v-5a2 2 0 0 0 0-4V4H3Z"/><path d="M13 7v2M13 13v2"/></symbol>
+    <symbol id="icon-bag" viewBox="0 0 24 24"><path d="M6 8h12l1 13H5Z"/><path d="M9 8a3 3 0 0 1 6 0"/></symbol>
+    <symbol id="icon-disc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/></symbol>
+    <symbol id="icon-play" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m9 9 6 3-6 3Z"/></symbol>
+    <symbol id="icon-tv" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m8 2 4 3 4-3M8 22h8"/></symbol>
+    <symbol id="icon-film" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M17 9h4M3 15h4M17 15h4"/></symbol>
+    <symbol id="icon-route" viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h3a3 3 0 0 0 0-6h2a3 3 0 0 0 3-3V8"/></symbol>
+    <symbol id="icon-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+  </svg>
+  <div class="review-shell">
+    <aside class="review-nav" aria-label="画面一覧">
+      <h1 class="review-title">推しスケ</h1>
+      <p class="review-note">全体確認用ワイヤーフレーム。左の項目から画面を切り替えます。</p>
+      <button class="review-link" data-screen="login" aria-selected="true">ログイン</button>
+      <button class="review-link" data-screen="home" aria-selected="false">ホーム</button>
+      <button class="review-link" data-screen="search" aria-selected="false">推し検索</button>
+      <button class="review-link" data-screen="profile" aria-selected="false">推しプロフィール</button>
+      <button class="review-link" data-screen="types" aria-selected="false">カード種類選択</button>
+      <button class="review-link" data-screen="form" aria-selected="false">カード追加フォーム</button>
+      <button class="review-link" data-screen="detail" aria-selected="false">カード詳細</button>
+      <button class="review-link" data-screen="schedule" aria-selected="false">マイスケジュール</button>
+      <button class="review-link" data-screen="notices" aria-selected="false">お知らせ</button>
+      <button class="review-link" data-screen="review" aria-selected="false">編集案の確認</button>
+      <button class="review-link" data-screen="report" aria-selected="false">通報</button>
+      <button class="review-link" data-screen="account" aria-selected="false">アカウント設定</button>
+      <button class="review-link" data-screen="admin" aria-selected="false">運営管理</button>
+    </aside>
+
+    <main class="review-main">
+      <section class="screen active" data-panel="login" aria-label="ログイン画面">
+        <div class="login-logo"><strong>OSI</strong><h1>推しスケ</h1></div>
+        <div class="content">
+          <label class="field-label">メールアドレス</label><input class="text-field" type="email" placeholder="mail@example.com">
+          <label class="field-label">パスワード</label><input class="text-field" type="password" placeholder="パスワード">
+          <button class="primary-action">ログイン</button>
+          <button class="text-action">アカウントを作成</button><br>
+          <button class="text-action">パスワードを忘れた場合</button>
+        </div>
+      </section>
+
+      <section class="screen" data-panel="home" aria-label="ホーム画面">
+        <header class="topbar"><h1>推しスケ</h1><div class="top-actions"><button class="circle-action" aria-label="お知らせ"><svg><use href="#icon-bell"/></svg></button><button class="circle-action" aria-label="設定"><svg><use href="#icon-user"/></svg></button></div></header>
+        <div class="chip-row" style="padding:12px 14px;background:#fff"><button class="chip selected">すべて</button><button class="chip">アイドルA</button><button class="chip">グループB</button></div>
+        <div class="tabs"><button class="tab active">新着</button><button class="tab">日程</button><button class="tab">人気</button></div>
+        <div class="content"><h2>日程未定</h2><article class="event-card"><div class="event-inner"><div class="event-meta"><span>ライブ</span><span>アイドルA</span></div><h3 class="event-title">WINTER TOUR 2026 開催決定</h3><p class="event-date">日程未定</p></div><button class="event-footer">⇨マイスケジュール</button></article><article class="event-card blue"><div class="event-inner"><div class="event-meta"><span>イベント</span><span>グループB</span></div><h3 class="event-title">デビュー5周年記念イベント</h3><p class="event-date">9月6日（土）13:00</p><p class="event-place">東京都・イベントホール</p></div><button class="event-footer">⇨マイスケジュール</button></article></div>
+        <nav class="bottom-nav"><button class="nav-item"><svg><use href="#icon-search"/></svg><span class="nav-label">推し検索</span></button><button class="nav-item active"><span class="osi-mark">OSI</span><span class="nav-label">ホーム</span></button><button class="nav-item"><svg><use href="#icon-list"/></svg><span class="nav-label">マイスケジュール</span></button></nav>
+      </section>
+
+      <section class="screen" data-panel="search" aria-label="推し検索画面">
+        <header class="topbar"><h1>推し検索</h1><div class="top-actions"><button class="circle-action" aria-label="お知らせ"><svg><use href="#icon-bell"/></svg></button><button class="circle-action" aria-label="設定"><svg><use href="#icon-user"/></svg></button></div></header>
+        <div class="content"><input class="text-field" type="search" placeholder="名前・読み方・別名で検索"><h2>カテゴリから探す</h2><div class="chip-row"><button class="chip">アイドル</button><button class="chip">声優</button><button class="chip">アニメ</button><button class="chip">ゲーム</button></div><h2>あなたへのおすすめ</h2><div class="profile-row"><div class="profile-icon"><svg><use href="#icon-music"/></svg></div><div><p class="profile-name">グループD</p><p class="profile-meta">アイドル・グループ</p></div><button class="secondary-action">推しに登録</button></div><h2>最近人気の推し</h2><div class="profile-row"><div class="profile-icon blue"><svg><use href="#icon-play"/></svg></div><div><p class="profile-name">作品E</p><p class="profile-meta">アニメ・作品</p></div><button class="secondary-action">推しに登録</button></div></div>
+        <nav class="bottom-nav"><button class="nav-item active"><svg><use href="#icon-search"/></svg><span class="nav-label">推し検索</span></button><button class="nav-item"><span class="osi-mark">OSI</span><span class="nav-label">ホーム</span></button><button class="nav-item"><svg><use href="#icon-list"/></svg><span class="nav-label">マイスケジュール</span></button></nav>
+      </section>
+
+      <section class="screen" data-panel="profile" aria-label="推しプロフィール画面">
+        <header class="topbar"><h1>推しプロフィール</h1><div class="top-actions"><button class="circle-action" aria-label="お知らせ"><svg><use href="#icon-bell"/></svg></button><button class="circle-action" aria-label="設定"><svg><use href="#icon-user"/></svg></button></div></header>
+        <div class="content"><div class="profile-hero"><div class="profile-icon"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div><div><h1 style="margin:0;font-size:21px">アイドルA</h1><p class="profile-meta">アイドル・アーティスト</p><button class="secondary-action">推しに登録</button></div></div><p class="muted">音楽活動を中心にライブ、配信、メディア出演などを行うアーティスト。</p><h2>公式リンク</h2><ul class="link-list"><li>公式サイト　↗</li><li>公式X　↗</li><li>公式YouTube　↗</li></ul><button class="primary-action">＋ カードを追加</button></div><div class="tabs"><button class="tab active">新着</button><button class="tab">日程</button><button class="tab">人気</button></div><div class="content"><article class="event-card"><div class="event-inner"><h3 class="event-title">WINTER TOUR 2026</h3><p class="event-date">日程未定</p></div></article></div>
+      </section>
+
+      <section class="screen" data-panel="types" aria-label="カード種類選択画面">
+        <header class="topbar"><h1>カードを追加</h1><button class="circle-action" aria-label="閉じる">×</button></header>
+        <div class="content"><h2>どんなカードを追加しますか？</h2><div class="type-grid"><button class="type-choice"><svg><use href="#icon-music"/></svg><span>ライブ・コンサート</span></button><button class="type-choice"><svg><use href="#icon-route"/></svg><span>ツアー</span></button><button class="type-choice"><svg><use href="#icon-calendar"/></svg><span>イベント</span></button><button class="type-choice"><svg><use href="#icon-ticket"/></svg><span>チケット</span></button><button class="type-choice"><svg><use href="#icon-bag"/></svg><span>グッズ発売</span></button><button class="type-choice"><svg><use href="#icon-disc"/></svg><span>作品発売</span></button><button class="type-choice"><svg><use href="#icon-play"/></svg><span>配信</span></button><button class="type-choice"><svg><use href="#icon-tv"/></svg><span>メディア出演</span></button><button class="type-choice"><svg><use href="#icon-film"/></svg><span>映画公開</span></button><button class="type-choice"><span class="osi-mark">＋</span><span>その他</span></button></div></div>
+      </section>
+
+      <section class="screen" data-panel="form" aria-label="カード追加フォーム">
+        <header class="topbar"><h1>ツアーカードを追加</h1><button class="circle-action">×</button></header>
+        <div class="content"><label class="field-label">タイトル（必須）</label><input class="text-field" value="WINTER TOUR 2026"><label class="field-label">情報元URL</label><input class="text-field" placeholder="https://"><div class="source-box">URLを入力すると、ページ名称とサムネイル候補を確認できます。</div><label class="field-label">開催予定時期</label><input class="text-field" placeholder="例：2026年冬"><h2>公演1</h2><label class="field-label">開催日</label><input class="text-field" type="date"><label class="field-label">会場</label><input class="text-field"><button class="secondary-action" style="margin-top:10px">＋ 公演を追加</button><label class="field-label">内容</label><textarea class="text-area"></textarea><label class="field-label">ハッシュタグ</label><input class="text-field" placeholder="#全国ツアー"><button class="primary-action">確認画面へ</button></div>
+      </section>
+
+      <section class="screen" data-panel="detail" aria-label="カード詳細画面">
+        <header class="topbar"><button class="circle-action" aria-label="戻る">←</button><h1>カード詳細</h1><button class="circle-action" aria-label="その他の操作"><svg><use href="#icon-more"/></svg></button></header>
+        <div class="content"><div class="detail-image"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div><p class="muted">ライブ　アイドルA</p><h1 style="font-size:22px">WINTER TOUR 2026</h1><div class="info-box"><strong>12月24日（木）</strong><br>17:00 開場　18:00 開演<br>東京ドーム</div><div class="tabs" style="padding:0"><button class="tab active">概要</button><button class="tab">セトリ</button><button class="tab">関連</button></div><p class="muted">全国4都市を巡る冬のツアー。詳細は公式ページをご確認ください。</p><h2>主な情報元</h2><div class="source-box">WINTER TOUR 2026 公式ページ<br><span class="muted">example.jp</span></div><button class="primary-action">⇨マイスケジュール</button><button class="text-action">情報を更新</button></div>
+      </section>
+
+      <section class="screen" data-panel="schedule" aria-label="マイスケジュール画面">
+        <header class="topbar"><h1>マイスケジュール</h1><div class="top-actions"><button class="circle-action" aria-label="お知らせ"><svg><use href="#icon-bell"/></svg></button><button class="circle-action" aria-label="設定"><svg><use href="#icon-user"/></svg></button></div></header><div class="tabs"><button class="tab active">チェック</button><button class="tab">コミット</button></div><div class="content"><h2>9月6日（土）</h2><article class="event-card checked"><div class="event-inner"><div class="event-meta"><span>イベント・グループB</span><span>チェック</span></div><h3 class="event-title">デビュー5周年記念イベント</h3><p class="event-date">13:00 開始</p></div></article><h2>12月24日（木）</h2><article class="event-card committed blue"><div class="event-inner"><div class="event-meta"><span>ライブ・アイドルA</span><span>コミット</span></div><h3 class="event-title">WINTER TOUR 2026 東京公演</h3><p class="event-date">18:00 開演</p></div></article><button class="text-action">過去の予定を見る</button></div><nav class="bottom-nav"><button class="nav-item"><svg><use href="#icon-search"/></svg><span class="nav-label">推し検索</span></button><button class="nav-item"><span class="osi-mark">OSI</span><span class="nav-label">ホーム</span></button><button class="nav-item active"><svg><use href="#icon-list"/></svg><span class="nav-label">マイスケジュール</span></button></nav>
+      </section>
+
+      <section class="screen" data-panel="notices" aria-label="お知らせ画面">
+        <header class="topbar"><button class="circle-action">←</button><h1>お知らせ</h1><button class="text-action">すべて既読</button></header><div class="content"><ul class="notice-list"><li class="notice-unread"><strong>新しい公演が追加されました</strong><br>WINTER TOUR 2026に大阪公演が追加されました。<br><span class="muted">10分前</span></li><li class="notice-unread"><strong>日程が決まりました</strong><br>日程未定だった配信日が9月18日に更新されました。<br><span class="muted">2時間前</span></li><li><strong>編集案が採用されました</strong><br>会場名の編集案が反映されました。<br><span class="muted">昨日</span></li></ul></div>
+      </section>
+
+      <section class="screen" data-panel="review" aria-label="編集案確認画面">
+        <header class="topbar"><button class="circle-action">←</button><h1>編集案を確認</h1><span></span></header><div class="content"><p class="muted">内容と情報元を確認して、正しいと思う方を選んでください。</p><p class="compare-label">現在の内容</p><div class="compare-box"><strong>開催日</strong><br>2026年12月24日</div><p class="compare-label">変更案</p><div class="compare-box proposed"><strong>開催日</strong><br>2026年12月25日</div><h2>情報元</h2><div class="source-box">WINTER TOUR 2026 公式ページ<br><span class="muted">example.jp</span></div><div class="choice-actions"><button class="secondary-action">現在の内容が正しい</button><button class="primary-action" style="margin:0">変更案が正しい</button></div><button class="text-action">判断できない</button></div>
+      </section>
+
+      <section class="screen" data-panel="report" aria-label="通報画面">
+        <header class="topbar"><button class="circle-action">×</button><h1>通報</h1><span></span></header><div class="content"><p class="muted">問題のある内容を運営へ知らせます。通報したことは他のユーザーには表示されません。</p><label class="field-label">通報理由</label><select class="select-field"><option>誤った情報</option><option>重複したカード</option><option>不適切な内容</option><option>危険または不正なURL</option><option>権利侵害の可能性</option><option>その他</option></select><label class="field-label">詳細（任意）</label><textarea class="text-area"></textarea><button class="primary-action">運営へ送る</button></div>
+      </section>
+
+      <section class="screen" data-panel="account" aria-label="アカウント設定画面">
+        <header class="topbar"><button class="circle-action">←</button><h1>アカウント設定</h1><span></span></header><div class="content"><h2>アカウント</h2><label class="field-label">HN</label><input class="text-field" value="ユーザーA"><label class="field-label">メールアドレス</label><input class="text-field" value="mail@example.com"><button class="secondary-action" style="margin-top:10px">パスワードを変更</button><h2>お知らせ</h2><div class="toggle-row"><span>日程・会場の変更</span><button class="toggle-box" aria-label="日程・会場の変更通知オン"></button></div><div class="toggle-row"><span>新しい公演</span><button class="toggle-box" aria-label="新しい公演通知オン"></button></div><div class="toggle-row"><span>編集案の結果</span><button class="toggle-box" aria-label="編集案の結果通知オン"></button></div><h2>その他</h2><ul class="link-list"><li>利用規約</li><li>プライバシーポリシー</li><li>利用ライブラリ</li><li>ログアウト</li><li>アカウントを削除</li></ul></div>
+      </section>
+
+      <section class="screen admin-screen" data-panel="admin" aria-label="運営管理画面">
+        <div class="admin-layout"><aside class="admin-side"><h1 style="font-size:18px">推しスケ管理</h1><button>概要</button><button>通報</button><button>編集案</button><button>重複候補</button><button>ユーザー</button><button>カテゴリ</button><button>操作履歴</button></aside><main class="admin-main"><h1>運営管理</h1><div class="admin-stats"><div class="admin-stat">未対応の通報<span class="admin-number">8</span></div><div class="admin-stat">確認待ち編集案<span class="admin-number">14</span></div><div class="admin-stat">重複候補<span class="admin-number">5</span></div></div><h2>新しい通報</h2><table class="admin-table"><thead><tr><th>対象</th><th>理由</th><th>日時</th><th>状態</th></tr></thead><tbody><tr><td>イベントカード</td><td>危険なURL</td><td>8/29 10:32</td><td>未対応</td></tr><tr><td>推しプロフィール</td><td>重複</td><td>8/29 09:18</td><td>確認中</td></tr><tr><td>セットリスト</td><td>誤った情報</td><td>8/28 22:04</td><td>未対応</td></tr></tbody></table></main></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      const links = document.querySelectorAll('.review-link');
+      const panels = document.querySelectorAll('[data-panel]');
+      links.forEach((link) => {
+        link.addEventListener('click', () => {
+          links.forEach((item) => item.setAttribute('aria-selected', 'false'));
+          panels.forEach((panel) => panel.classList.remove('active'));
+          link.setAttribute('aria-selected', 'true');
+          document.querySelector(`[data-panel="${link.dataset.screen}"]`).classList.add('active');
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

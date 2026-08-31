@@ -1,0 +1,66 @@
+name: oshisuke
+
+services:
+  frontend:
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+
+  api:
+    build:
+      context: ./backend
+    environment:
+      APP_ENV: development
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ${MYSQL_DATABASE:-oshisuke}
+      DB_USER: ${MYSQL_USER:-oshisuke}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-local-only-password}
+    volumes:
+      - ./backend:/var/www/html
+    ports:
+      - "8080:80"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-oshisuke}
+      MYSQL_USER: ${MYSQL_USER:-oshisuke}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-local-only-password}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-local-only-root-password}
+      TZ: Asia/Tokyo
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
+      - ./database/migrations/0002_core_tables.sql:/docker-entrypoint-initdb.d/002-core-tables.sql:ro
+      - ./database/migrations/0003_card_revisions.sql:/docker-entrypoint-initdb.d/003-card-revisions.sql:ro
+      - ./database/migrations/0004_card_edit_proposals.sql:/docker-entrypoint-initdb.d/004-card-edit-proposals.sql:ro
+      - ./database/migrations/0005_card_edit_votes.sql:/docker-entrypoint-initdb.d/005-card-edit-votes.sql:ro
+      - ./database/migrations/0006_notifications.sql:/docker-entrypoint-initdb.d/006-notifications.sql:ro
+      - ./database/migrations/0007_reports.sql:/docker-entrypoint-initdb.d/007-reports.sql:ro
+      - ./database/migrations/0008_admin_actions.sql:/docker-entrypoint-initdb.d/008-admin-actions.sql:ro
+      - ./database/migrations/0009_url_previews.sql:/docker-entrypoint-initdb.d/009-url-previews.sql:ro
+      - ./database/migrations/0010_setlists.sql:/docker-entrypoint-initdb.d/010-setlists.sql:ro
+      - ./database/migrations/0011_oshi_profiles.sql:/docker-entrypoint-initdb.d/011-oshi-profiles.sql:ro
+      - ./database/seeds/development.sql:/docker-entrypoint-initdb.d/012-development-seed.sql:ro
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p\"$$MYSQL_ROOT_PASSWORD\""]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  frontend_node_modules:
+  mysql_data:
