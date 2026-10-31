@@ -6,7 +6,7 @@ function showMessage() {
     window.location.search
   ).get("message");
 
-  document.getElementById("result").innerHTML = message;
+  document.getElementById("result").textContent = message ?? "";
 }
 
 showMessage();
